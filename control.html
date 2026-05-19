@@ -20,6 +20,7 @@
         button.btn-red { background: #c62828; }
         button.btn-blue { background: #1565c0; }
         button.btn-orange { background: #e65100; }
+        button.btn-purple { background: #6a1b9a; }
 
         input[type="text"], input[type="number"] { font-family: 'Chakra Petch'; width: 100%; box-sizing: border-box; padding: 10px; font-size: 16px; background: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; }
         input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; background: transparent; padding: 0; }
@@ -27,13 +28,14 @@
         .score-display { font-size: 35px; font-weight: bold; text-align: center; margin: 10px 0; font-variant-numeric: tabular-nums; }
         .color-label { display: flex; flex-direction: column; font-size: 14px; margin-bottom: 5px; }
         
-        /* ระบบ Tabs */
         .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px 5px; background: #2d2d2d; color: #aaa; border-radius: 8px; font-size: 14px; }
         .tab-btn.active { background: #1565c0; color: white; border: 2px solid #fff; }
         
-        .upload-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .upload-row { display: flex; gap: 10px; align-items: center; margin-bottom: 5px; }
         .upload-row input[type="file"] { flex: 1; font-size: 12px; }
+
+        .penalty-box { display: none; background: #333; padding: 10px; border-radius: 8px; margin-top: 10px; border: 2px solid #ffeb3b; }
     </style>
 </head>
 <body>
@@ -49,7 +51,7 @@
         <h3>🏆 ข้อมูลการแข่งขัน</h3>
         <input type="text" id="eventName" placeholder="ชื่อรายการแข่งขัน" oninput="updateState('eventName', this.value)">
         
-        <div style="margin-top: 15px;">
+        <div style="margin-top: 10px;">
             <strong>โลโก้รายการ:</strong>
             <div class="upload-row">
                 <input type="file" id="logoMainUpload" accept="image/*">
@@ -57,6 +59,17 @@
             </div>
             <div id="statusMain" style="font-size: 12px; color: #ffca28;"></div>
         </div>
+    </div>
+
+    <div class="control-box">
+        <h3>🔄 ระยะเวลาแข่งขัน (ปัจจุบัน: <input type="text" id="periodInput" onchange="updateState('period', this.value)" style="width: 80px; display:inline-block; padding: 5px; text-align: center;">)</h3>
+        <div class="grid-2" style="margin-bottom: 10px;">
+            <button class="btn-green" onclick="updateState('period', '1')">ครึ่ง 1</button>
+            <button class="btn-green" onclick="updateState('period', '2')">ครึ่ง 2</button>
+            <button class="btn-orange" onclick="updateState('period', 'ET1')">ต่อเวลา 1</button>
+            <button class="btn-orange" onclick="updateState('period', 'ET2')">ต่อเวลา 2</button>
+        </div>
+        <button id="penaltyToggleBtn" class="btn-purple" onclick="togglePenaltyMode()">⚽ โหมดยิงจุดโทษ (เปิด/ปิด)</button>
     </div>
 
     <div class="control-box" id="timerControlSection">
@@ -76,29 +89,32 @@
     </div>
 
     <div class="control-box">
-        <h3>🔄 ควบคุมเซ็ต / ครึ่งเวลา (ปัจจุบัน: <span id="periodDisplay">1</span>)</h3>
-        <div class="grid-2">
-            <button class="btn-green" onclick="changePeriod(1)">+ เพิ่ม</button>
-            <button class="btn-red" onclick="changePeriod(-1)">- ลด</button>
-        </div>
+        <h3>🖼️ โลโก้ทีมซ้าย-ขวา</h3>
+        <button class="btn-blue" onclick="state.showTeamLogos = !state.showTeamLogos; emitState();">เปิด/ปิด โลโก้ทั้ง 2 ทีมพร้อมกัน</button>
     </div>
 
     <div class="grid-2">
         <div class="control-box">
             <h3 style="color: #ff5252;">ทีม A (ซ้าย)</h3>
+            <div class="upload-row"><input type="file" id="logoAUpload" accept="image/*"></div>
+            <div id="statusA" style="font-size: 12px; color: #ffca28; margin-bottom: 10px;"></div>
+
             <input type="text" id="nameA" placeholder="ชื่อทีม A" oninput="updateState('nameA', this.value)">
             
-            <div class="upload-row" style="margin-top: 10px;">
-                <input type="file" id="logoAUpload" accept="image/*">
-                <button onclick="state.showLogoA = !state.showLogoA; emitState();" style="width: 60px;">ตา</button>
-            </div>
-            <div id="statusA" style="font-size: 12px; color: #ffca28;"></div>
-
             <div class="score-display" id="scoreADisplay">0</div>
             <div class="grid-2">
                 <button class="btn-green" onclick="updateStat('scoreA', 1)">+ แต้ม</button>
                 <button class="btn-red" onclick="updateStat('scoreA', -1)">- แต้ม</button>
             </div>
+            
+            <div id="penaltyBoxA" class="penalty-box">
+                <div style="text-align: center; font-weight: bold; color: #ffeb3b;">ยิงจุดโทษ: <span id="penADisplay">0</span></div>
+                <div class="grid-2" style="margin-top: 5px;">
+                    <button class="btn-green" onclick="updateStat('penaltyA', 1)">+ เข้า</button>
+                    <button class="btn-red" onclick="updateStat('penaltyA', -1)">- ลด</button>
+                </div>
+            </div>
+
             <div style="text-align: center; margin-top: 15px; font-weight: bold;">ฟาวล์: <span id="foulADisplay">0</span></div>
             <div class="grid-2" style="margin-top: 5px;">
                 <button onclick="updateStat('foulA', 1)">+</button>
@@ -108,19 +124,25 @@
 
         <div class="control-box">
             <h3 style="color: #448aff;">ทีม B (ขวา)</h3>
+            <div class="upload-row"><input type="file" id="logoBUpload" accept="image/*"></div>
+            <div id="statusB" style="font-size: 12px; color: #ffca28; margin-bottom: 10px;"></div>
+
             <input type="text" id="nameB" placeholder="ชื่อทีม B" oninput="updateState('nameB', this.value)">
             
-            <div class="upload-row" style="margin-top: 10px;">
-                <input type="file" id="logoBUpload" accept="image/*">
-                <button onclick="state.showLogoB = !state.showLogoB; emitState();" style="width: 60px;">ตา</button>
-            </div>
-            <div id="statusB" style="font-size: 12px; color: #ffca28;"></div>
-
             <div class="score-display" id="scoreBDisplay">0</div>
             <div class="grid-2">
                 <button class="btn-green" onclick="updateStat('scoreB', 1)">+ แต้ม</button>
                 <button class="btn-red" onclick="updateStat('scoreB', -1)">- แต้ม</button>
             </div>
+
+            <div id="penaltyBoxB" class="penalty-box">
+                <div style="text-align: center; font-weight: bold; color: #ffeb3b;">ยิงจุดโทษ: <span id="penBDisplay">0</span></div>
+                <div class="grid-2" style="margin-top: 5px;">
+                    <button class="btn-green" onclick="updateStat('penaltyB', 1)">+ เข้า</button>
+                    <button class="btn-red" onclick="updateStat('penaltyB', -1)">- ลด</button>
+                </div>
+            </div>
+
             <div style="text-align: center; margin-top: 15px; font-weight: bold;">ฟาวล์: <span id="foulBDisplay">0</span></div>
             <div class="grid-2" style="margin-top: 5px;">
                 <button onclick="updateStat('foulB', 1)">+</button>
@@ -158,10 +180,10 @@
         const stateRef = ref(db, 'scoreboard/state');
 
         const defaultState = {
-            sport: 'futsal', eventName: 'รายการแข่งขัน', period: 1,
+            sport: 'futsal', eventName: 'รายการแข่งขัน', period: '1',
             showLogo: false, logoUrl: '',
-            showLogoA: false, logoUrlA: '',
-            showLogoB: false, logoUrlB: '',
+            showTeamLogos: false, logoUrlA: '', logoUrlB: '',
+            isPenalty: false, penaltyA: 0, penaltyB: 0,
             timerDirection: 'up',
             timer: { minutes: 0, seconds: 0, isRunning: false, lastUpdatedTime: 0 },
             scoreA: 0, scoreB: 0, foulA: 0, foulB: 0, nameA: 'TEAM A', nameB: 'TEAM B',
@@ -173,20 +195,19 @@
         window.emitState = function() { set(stateRef, state); updateUI(); };
         window.updateState = function(key, value) { state[key] = value; emitState(); };
         window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); };
-        window.changePeriod = function(val) { state.period = Math.max(1, state.period + val); emitState(); };
 
-        // ระบบเลือกกีฬา (Tab)
-        window.changeSport = function(sportType) {
-            state.sport = sportType;
-            if (sportType === 'basketball') {
-                state.timerDirection = 'down'; // บาสเกตบอลนับถอยหลังอัตโนมัติ
-            } else if (sportType === 'futsal') {
-                state.timerDirection = 'up';
-            }
+        window.togglePenaltyMode = function() {
+            state.isPenalty = !state.isPenalty;
+            if (state.isPenalty) state.period = 'PEN';
             emitState();
         };
 
-        // ระบบเวลา
+        window.changeSport = function(sportType) {
+            state.sport = sportType;
+            state.timerDirection = (sportType === 'basketball') ? 'down' : 'up';
+            emitState();
+        };
+
         window.toggleTimer = function() {
             if (!state.timer.isRunning) {
                 state.timer.isRunning = true;
@@ -202,10 +223,8 @@
         };
 
         window.setCustomTime = function() {
-            let m = parseInt(document.getElementById('customMin').value) || 0;
-            let s = parseInt(document.getElementById('customSec').value) || 0;
-            state.timer.minutes = m;
-            state.timer.seconds = s;
+            state.timer.minutes = parseInt(document.getElementById('customMin').value) || 0;
+            state.timer.seconds = parseInt(document.getElementById('customSec').value) || 0;
             state.timer.isRunning = false;
             state.timer.lastUpdatedTime = 0;
             emitState();
@@ -233,24 +252,30 @@
             if (document.activeElement.id !== 'eventName') document.getElementById('eventName').value = state.eventName;
             if (document.activeElement.id !== 'nameA') document.getElementById('nameA').value = state.nameA;
             if (document.activeElement.id !== 'nameB') document.getElementById('nameB').value = state.nameB;
+            if (document.activeElement.id !== 'periodInput') document.getElementById('periodInput').value = state.period;
             
-            // อัปเดต Tabs
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('tab-' + state.sport).classList.add('active');
 
-            // ซ่อนโชว์แผงเวลาตามกีฬา
             document.getElementById('timerControlSection').style.display = (state.sport === 'volleyball') ? 'none' : 'block';
-
-            document.getElementById('colorA').value = state.colorA;
-            document.getElementById('colorB').value = state.colorB;
-            document.getElementById('bgColor').value = state.bgColor;
-            document.getElementById('textColor').value = state.textColor;
 
             document.getElementById('scoreADisplay').innerText = state.scoreA;
             document.getElementById('scoreBDisplay').innerText = state.scoreB;
             document.getElementById('foulADisplay').innerText = state.foulA;
             document.getElementById('foulBDisplay').innerText = state.foulB;
-            document.getElementById('periodDisplay').innerText = state.period;
+            
+            // อัปเดตข้อมูลจุดโทษและเปลี่ยนสีปุ่ม
+            document.getElementById('penaltyBoxA').style.display = state.isPenalty ? 'block' : 'none';
+            document.getElementById('penaltyBoxB').style.display = state.isPenalty ? 'block' : 'none';
+            document.getElementById('penADisplay').innerText = state.penaltyA;
+            document.getElementById('penBDisplay').innerText = state.penaltyB;
+            document.getElementById('penaltyToggleBtn').style.background = state.isPenalty ? '#c62828' : '#6a1b9a'; // แดงเมื่อเปิด ม่วงเมื่อปิด
+
+            // อัปเดตสี
+            document.getElementById('colorA').value = state.colorA;
+            document.getElementById('colorB').value = state.colorB;
+            document.getElementById('bgColor').value = state.bgColor;
+            document.getElementById('textColor').value = state.textColor;
 
             document.getElementById('timerToggleBtn').innerText = state.timer.isRunning ? "หยุดเวลา" : "เริ่มเวลา";
             document.getElementById('timerToggleBtn').style.background = state.timer.isRunning ? "#c62828" : "#2e7d32";
@@ -265,17 +290,14 @@
 
         onValue(stateRef, (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                state = { ...state, ...data };
-                updateUI();
-            }
+            if (data) { state = { ...state, ...data }; updateUI(); }
         });
 
-        // ฟังก์ชันอัปโหลดรูปภาพผ่าน Cloudinary แบบ Reusable (ใช้ร่วมกัน 3 โลโก้)
+        // ฟังก์ชันอัปโหลดรูป
         const CLOUD_NAME = 'dk0ypev4m'; 
         const UPLOAD_PRESET = 'khonkaen_preset';
         
-        async function handleUpload(inputId, statusId, urlKey, showKey) {
+        async function handleUpload(inputId, statusId, urlKey) {
             const file = document.getElementById(inputId).files[0];
             if (!file) return;
             const statusLabel = document.getElementById(statusId);
@@ -292,7 +314,6 @@
                     statusLabel.innerText = "✅ สำเร็จ!";
                     statusLabel.style.color = "#66bb6a";
                     state[urlKey] = data.secure_url; 
-                    state[showKey] = true; 
                     emitState(); 
                 }
             } catch (error) {
@@ -301,9 +322,9 @@
             }
         }
 
-        document.getElementById('logoMainUpload').addEventListener('change', () => handleUpload('logoMainUpload', 'statusMain', 'logoUrl', 'showLogo'));
-        document.getElementById('logoAUpload').addEventListener('change', () => handleUpload('logoAUpload', 'statusA', 'logoUrlA', 'showLogoA'));
-        document.getElementById('logoBUpload').addEventListener('change', () => handleUpload('logoBUpload', 'statusB', 'logoUrlB', 'showLogoB'));
+        document.getElementById('logoMainUpload').addEventListener('change', () => { handleUpload('logoMainUpload', 'statusMain', 'logoUrl'); state.showLogo = true; });
+        document.getElementById('logoAUpload').addEventListener('change', () => handleUpload('logoAUpload', 'statusA', 'logoUrlA'));
+        document.getElementById('logoBUpload').addEventListener('change', () => handleUpload('logoBUpload', 'statusB', 'logoUrlB'));
 
     </script>
 </body>
