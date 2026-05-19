@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scoreboard Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* [คง CSS เดิมไว้ทั้งหมด และเพิ่ม Media Query สำหรับมือถือด้านล่างนี้] */
+        :root { --bg-main: #121212; --bg-card: #1e1e1e; --text-main: #e0e0e0; --border-color: #333333; --input-bg: #2d2d2d; }
+        body { font-family: 'Chakra Petch', sans-serif; padding: 15px; background: var(--bg-main); color: var(--text-main); margin: 0; }
+        
+        /* ปรับ Grid ให้เป็น Mobile-First (แนวตั้ง) */
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        
+        /* ปรับขนาดปุ่มและตัวหนังสือให้ใหญ่ขึ้น กดง่ายบนหน้าจอมือถือ */
+        button { font-family: 'Chakra Petch'; padding: 15px; font-size: 18px; width: 100%; margin: 5px 0; border-radius: 8px; }
+        input[type="text"], input[type="number"], select { font-size: 18px; padding: 12px; }
+        .score-display { font-size: 60px; }
+        .tabs { display: flex; overflow-x: auto; white-space: nowrap; padding-bottom: 10px; }
+        .tab-btn { flex: 0 0 auto; width: auto; font-size: 16px; padding: 12px 15px; }
+
+        @media (min-width: 768px) {
+            /* เมื่อเป็นหน้าจอใหญ่ ให้กลับไปเป็น 2 คอลัมน์ */
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+            button { width: auto; margin: 5px 2px; }
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5o9aY3La7nK7gCHbjM2ToolmnoE0y-is",
+            authDomain: "post-it-kk-election.firebaseapp.com",
+            projectId: "post-it-kk-election",
+            storageBucket: "post-it-kk-election.firebasestorage.app",
+            messagingSenderId: "323275742590",
+            appId: "1:323275742590:web:7bbb20241bca6cca46672f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const stateRef = ref(db, 'scoreboard/state');
+
+        // ฟังก์ชันส่งข้อมูลไปยัง Firebase ทุกครั้งที่มีการเปลี่ยนแปลงจาก Controller
+        window.emitState = function() {
+            set(stateRef, state);
+        };
+
+        // ย้ายระบบนับเวลา (Timer) จาก server.js มาไว้ที่ Controller
+        setInterval(() => {
+            let stateChanged = false;
+            if (state.timer.isRunning) {
+                if (state.timer.direction === 'up') {
+                    state.timer.seconds++;
+                    if (state.timer.seconds >= 60) { state.timer.minutes++; state.timer.seconds = 0; }
+                } else {
+                    if (state.timer.minutes === 0 && state.timer.seconds === 0) {
+                        state.timer.isRunning = false;
+                    } else {
+                        state.timer.seconds--;
+                        if (state.timer.seconds < 0) { state.timer.minutes--; state.timer.seconds = 59; }
+                    }
+                }
+                stateChanged = true;
+            }
+
+            if (state.shotClock.isRunning) {
+                if (state.shotClock.seconds > 0) {
+                    state.shotClock.seconds--;
+                } else {
+                    state.shotClock.isRunning = false;
+                }
+                stateChanged = true;
+            }
+
+            // ซิงค์เวลาขึ้น Firebase ทุกๆ 1 วินาที
+            if (stateChanged) {
+                emitState();
+            }
+        }, 1000);
+
+        // ดึงข้อมูลครั้งแรกเมื่อเปิดหน้า
+        onValue(stateRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data && !window.initialized) {
+                state = data;
+                updateUI(); // ฟังก์ชันอัปเดตหน้าจอ Control เดิมของคุณ
+                window.initialized = true;
+            }
+        });
+    </script>
+</body>
+</html>

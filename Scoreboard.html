@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* รีเซ็ตหน้าจอให้จัดกึ่งกลางและมีพื้นหลังสีดำ */
+        body, html { 
+            margin: 0; padding: 0; 
+            width: 100%; height: 100%; 
+            background-color: #000; 
+            display: flex; justify-content: center; align-items: center; 
+            overflow: hidden;
+        }
+
+        /* Container 16:9 ที่จะยืดหดตามหน้าจออัตโนมัติ */
+        .scoreboard-container {
+            width: 100vw;
+            max-width: 100%;
+            aspect-ratio: 16 / 9;
+            position: relative;
+        }
+
+        /* จำลองความละเอียด 1920x1080 ซ้อนใน Container */
+        .board { 
+            width: 1920px; 
+            height: 1080px; 
+            transform-origin: top left;
+            position: absolute;
+            top: 0; left: 0;
+            background-color: var(--bg-color, #000000); 
+            color: #ffffff; 
+            display: flex; flex-direction: column; align-items: center; 
+            box-sizing: border-box; 
+            font-family: 'Chakra Petch', sans-serif;
+        }
+
+        /* [ใส่ CSS ย่อยของ Scoreboard ของคุณไว้ที่นี่...] */
+    </style>
+</head>
+<body>
+    <div class="scoreboard-container" id="scale-container">
+        <div class="board" id="main-board">
+            </div>
+    </div>
+
+    <script>
+        function resizeBoard() {
+            const container = document.getElementById('scale-container');
+            const board = document.getElementById('main-board');
+            const scale = container.clientWidth / 1920;
+            board.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', resizeBoard);
+        resizeBoard();
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5o9aY3La7nK7gCHbjM2ToolmnoE0y-is",
+            authDomain: "post-it-kk-election.firebaseapp.com",
+            projectId: "post-it-kk-election",
+            storageBucket: "post-it-kk-election.firebasestorage.app",
+            messagingSenderId: "323275742590",
+            appId: "1:323275742590:web:7bbb20241bca6cca46672f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const stateRef = ref(db, 'scoreboard/state');
+
+        // รับข้อมูลจาก Controller ทุกครั้งที่มีการอัปเดต
+        onValue(stateRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                window.state = data;
+                // อัปเดตหน้าจอ (ฟังก์ชัน render หน้าจอจากโค้ดเดิมของคุณ)
+                updateScoreboard(); 
+            }
+        });
+
+        // ฟังก์ชันรับข้อมูลหน้าจอเดิม (นำมาปรับใช้ต่อได้เลย)
+        function updateScoreboard() {
+            // โค้ดส่วนดึงข้อมูล state มาลงใน HTML ...
+        }
+    </script>
+</body>
+</html>
