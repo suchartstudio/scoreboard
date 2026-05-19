@@ -12,7 +12,6 @@
         .control-box { background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); }
         h3 { margin-top: 0; font-size: 18px; color: #fff; }
         
-        .grid-1 { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         button { font-family: 'Chakra Petch'; padding: 15px; font-size: 16px; font-weight: bold; width: 100%; border-radius: 8px; cursor: pointer; border: none; background: #3a3a3a; color: white; transition: 0.2s; }
@@ -23,52 +22,61 @@
         button.btn-orange { background: #e65100; }
 
         input[type="text"], input[type="number"], select { font-family: 'Chakra Petch'; width: 100%; box-sizing: border-box; padding: 12px; font-size: 16px; background: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; }
-        input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; background: transparent; padding: 0; }
+        input[type="color"] { width: 100%; height: 45px; border: none; cursor: pointer; background: transparent; padding: 0; }
         
-        .score-display { font-size: 40px; font-weight: bold; text-align: center; margin: 10px 0; }
-        .color-label { display: flex; flex-direction: column; font-size: 14px; }
+        .score-display { font-size: 40px; font-weight: bold; text-align: center; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .color-label { display: flex; flex-direction: column; font-size: 14px; margin-bottom: 5px; }
+        
+        .history-item { background: #2a2a2a; padding: 8px; margin-top: 5px; border-radius: 4px; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h2 style="text-align: center;">⚙️ Controller</h2>
+    <h2 style="text-align: center; margin-bottom: 10px;">⚙️ แผงควบคุมสกอร์บอร์ด</h2>
 
     <div class="control-box">
         <h3>🏆 ข้อมูลการแข่งขัน</h3>
         <input type="text" id="eventName" placeholder="ชื่อรายการแข่งขัน" oninput="updateState('eventName', this.value)">
         <select id="sport" onchange="updateState('sport', this.value)">
-            <option value="futsal">Futsal / Football</option>
-            <option value="basketball">Basketball</option>
-            <option value="volleyball">Volleyball / Badminton</option>
+            <option value="futsal">ฟุตซอล / ฟุตบอล (Futsal / Football)</option>
+            <option value="basketball">บาสเกตบอล (Basketball)</option>
+            <option value="volleyball">วอลเลย์บอล / แบดมินตัน (Volleyball / Set Match)</option>
         </select>
     </div>
 
     <div class="control-box">
-        <h3>🎨 สีและธีม (Scoreboard)</h3>
+        <h3>🎨 สีเสื้อทีมและธีม</h3>
         <div class="grid-2">
-            <label class="color-label">สีพื้นหลังหน้าจอ: <input type="color" id="bgColor" onchange="updateState('bgColor', this.value)"></label>
-            <label class="color-label">สีกล่องคะแนน: <input type="color" id="boxColor" onchange="updateState('boxColor', this.value)"></label>
-            <label class="color-label">สีขอบทีม A (ซ้าย): <input type="color" id="colorA" onchange="updateState('colorA', this.value)"></label>
-            <label class="color-label">สีขอบทีม B (ขวา): <input type="color" id="colorB" onchange="updateState('colorB', this.value)"></label>
-            <label class="color-label">สีตัวหนังสือหลัก: <input type="color" id="textColor" onchange="updateState('textColor', this.value)"></label>
+            <label class="color-label">สีเสื้อทีม A: <input type="color" id="colorA" onchange="updateState('colorA', this.value)"></label>
+            <label class="color-label">สีเสื้อทีม B: <input type="color" id="colorB" onchange="updateState('colorB', this.value)"></label>
+            <label class="color-label">สีพื้นหลังบอร์ด: <input type="color" id="bgColor" onchange="updateState('bgColor', this.value)"></label>
+            <label class="color-label">สีข้อความบอร์ด: <input type="color" id="textColor" onchange="updateState('textColor', this.value)"></label>
         </div>
     </div>
 
     <div class="control-box">
-        <h3>🖼️ โลโก้ (Cloudinary)</h3>
+        <h3>🖼️ โลโก้การแข่งขัน</h3>
         <input type="file" id="logoUpload" accept="image/*">
         <div id="uploadStatus" style="font-size: 14px; margin-top: 5px; color: #ffca28;"></div>
         <button class="btn-blue" onclick="state.showLogo = !state.showLogo; emitState();" style="margin-top: 10px;">เปิด/ปิด โลโก้</button>
     </div>
 
     <div class="control-box">
-        <h3>⏱️ เวลา</h3>
+        <h3>⏱️ ควบคุมเวลาแรมนับ</h3>
         <div class="score-display" id="timeDisplay">00:00</div>
         <div class="grid-2">
-            <button class="btn-green" onclick="toggleTimer()">เริ่ม / หยุด เวลา</button>
-            <button class="btn-orange" onclick="resetTimer(20, 0)">รีเซ็ต 20 นาที</button>
+            <button class="btn-green" id="timerToggleBtn" onclick="toggleTimer()">เริ่มเวลา</button>
+            <button class="btn-orange" onclick="resetTimer(20, 0)">ตั้ง 20 นาที</button>
         </div>
-        <div style="margin-top: 10px;">
-            <button onclick="updateState('period', state.period + 1)">+ Period/Set/Quarter</button>
+        <div class="grid-2" style="margin-top: 10px;">
+            <button onclick="resetTimer(45, 0)">ตั้ง 45 นาที</button>
+            <button onclick="resetTimer(0, 0)">เคลียร์เวลา</button>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+            <select id="timerDirection" onchange="updateState('timerDirection', this.value)" style="margin-bottom: 0; flex: 1;">
+                <option value="up">นับขึ้น (Count Up)</option>
+                <option value="down">นับถอยหลัง (Count Down)</option>
+            </select>
+            <button onclick="changePeriod(1)" style="flex: 1;">+ ครึ่ง/เซต (<span id="periodDisplay">1</span>)</button>
         </div>
     </div>
 
@@ -78,13 +86,13 @@
             <input type="text" id="nameA" placeholder="ชื่อทีม A" oninput="updateState('nameA', this.value)">
             <div class="score-display" id="scoreADisplay">0</div>
             <div class="grid-2">
-                <button class="btn-green" onclick="updateStat('scoreA', 1)">+ คะแนน</button>
-                <button class="btn-red" onclick="updateStat('scoreA', -1)">- คะแนน</button>
+                <button class="btn-green" onclick="updateStat('scoreA', 1)">+ แต้ม</button>
+                <button class="btn-red" onclick="updateStat('scoreA', -1)">- แต้ม</button>
             </div>
-            <div class="score-display" style="font-size: 20px; margin-top: 15px;">ฟาวล์/เซต: <span id="foulADisplay">0</span></div>
-            <div class="grid-2">
-                <button onclick="updateStat('foulA', 1)">+ ค่า</button>
-                <button onclick="updateStat('foulA', -1)">- ค่า</button>
+            <div style="text-align: center; margin-top: 15px; font-weight: bold;">ฟาวล์ / เซตชนะ: <span id="foulADisplay">0</span></div>
+            <div class="grid-2" style="margin-top: 5px;">
+                <button onclick="updateStat('foulA', 1)">+</button>
+                <button onclick="updateStat('foulA', -1)">-</button>
             </div>
         </div>
 
@@ -93,15 +101,25 @@
             <input type="text" id="nameB" placeholder="ชื่อทีม B" oninput="updateState('nameB', this.value)">
             <div class="score-display" id="scoreBDisplay">0</div>
             <div class="grid-2">
-                <button class="btn-green" onclick="updateStat('scoreB', 1)">+ คะแนน</button>
-                <button class="btn-red" onclick="updateStat('scoreB', -1)">- คะแนน</button>
+                <button class="btn-green" onclick="updateStat('scoreB', 1)">+ แต้ม</button>
+                <button class="btn-red" onclick="updateStat('scoreB', -1)">- แต้ม</button>
             </div>
-            <div class="score-display" style="font-size: 20px; margin-top: 15px;">ฟาวล์/เซต: <span id="foulBDisplay">0</span></div>
-            <div class="grid-2">
-                <button onclick="updateStat('foulB', 1)">+ ค่า</button>
-                <button onclick="updateStat('foulB', -1)">- ค่า</button>
+            <div style="text-align: center; margin-top: 15px; font-weight: bold;">ฟาวล์ / เซตชนะ: <span id="foulBDisplay">0</span></div>
+            <div class="grid-2" style="margin-top: 5px;">
+                <button onclick="updateStat('foulB', 1)">+</button>
+                <button onclick="updateStat('foulB', -1)">-</button>
             </div>
         </div>
+    </div>
+
+    <div class="control-box" id="setMatchBox">
+        <h3>🏐 บันทึกผลการแข่งขันแต่ละเซต</h3>
+        <button class="btn-blue" onclick="endSet()">จบเซตนี้และบันทึกคะแนน (End Set)</button>
+        <div id="setHistoryList" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="control-box" style="background: #210404; border-color: #521111;">
+        <button class="btn-red" onclick="resetAllData()">⚠️ รีเซ็ตข้อมูลทั้งหมดเริ่มต้นใหม่ (Reset All)</button>
     </div>
 
     <script type="module">
@@ -115,80 +133,157 @@
             storageBucket: "post-it-kk-election.firebasestorage.app",
             messagingSenderId: "323275742590",
             appId: "1:323275742590:web:7bbb20241bca6cca46672f",
-            databaseURL: "https://post-it-kk-election-default-rtdb.firebaseio.com" // แก้ให้ตรงกับของคุณถ้าจำเป็น
+            databaseURL: "https://post-it-kk-election-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const stateRef = ref(db, 'scoreboard/state');
 
-        // State พื้นฐาน (เพิ่มเรื่องสีเข้ามา)
-        window.state = {
-            sport: 'futsal', eventName: 'การแข่งขันกีฬา', period: 1,
+        const defaultState = {
+            sport: 'futsal', eventName: 'รายการแข่งขัน', period: 1,
             showLogo: false, logoUrl: '',
-            timer: { minutes: 0, seconds: 0, isRunning: false, direction: 'up' },
-            scoreA: 0, scoreB: 0, foulA: 0, foulB: 0, nameA: 'Team A', nameB: 'Team B',
-            bgColor: '#000000', boxColor: '#141414', colorA: '#ff5252', colorB: '#448aff', textColor: '#ffffff'
+            timerDirection: 'up',
+            timer: { minutes: 0, seconds: 0, isRunning: false, lastUpdatedTime: 0 },
+            scoreA: 0, scoreB: 0, foulA: 0, foulB: 0, nameA: 'TEAM A', nameB: 'TEAM B',
+            bgColor: '#000000', colorA: '#ff5252', colorB: '#448aff', textColor: '#ffffff',
+            setHistory: []
         };
+
+        window.state = { ...defaultState };
 
         window.emitState = function() { set(stateRef, state); updateUI(); };
         window.updateState = function(key, value) { state[key] = value; emitState(); };
         window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); };
-        window.toggleTimer = function() { state.timer.isRunning = !state.timer.isRunning; emitState(); };
-        window.resetTimer = function(m, s) { state.timer.minutes = m; state.timer.seconds = s; state.timer.isRunning = false; emitState(); };
+        
+        window.changePeriod = function(val) { state.period = Math.max(1, state.period + val); emitState(); };
 
+        // จัดการฟังก์ชันเวลารูปแบบใหม่ป้องกันการโดนพับจอแอปพลิเคชัน
+        window.toggleTimer = function() {
+            if (!state.timer.isRunning) {
+                state.timer.isRunning = true;
+                state.timer.lastUpdatedTime = Date.now();
+            } else {
+                let totalSecs = calculateCurrentSeconds(state.timer, state.timerDirection);
+                state.timer.minutes = Math.floor(totalSecs / 60);
+                state.timer.seconds = totalSecs % 60;
+                state.timer.isRunning = false;
+                state.timer.lastUpdatedTime = 0;
+            }
+            emitState();
+        };
+
+        window.resetTimer = function(m, s) {
+            state.timer.minutes = m;
+            state.timer.seconds = s;
+            state.timer.isRunning = false;
+            state.timer.lastUpdatedTime = 0;
+            emitState();
+        };
+
+        function calculateCurrentSeconds(timer, direction) {
+            let baseSecs = (timer.minutes * 60) + timer.seconds;
+            if (timer.isRunning && timer.lastUpdatedTime > 0) {
+                let diff = Math.floor((Date.now() - timer.lastUpdatedTime) / 1000);
+                if (direction === 'up') {
+                    return baseSecs + diff;
+                } else {
+                    return Math.max(0, baseSecs - diff);
+                }
+            }
+            return baseSecs;
+        }
+
+        window.endSet = function() {
+            if(!state.setHistory) state.setHistory = [];
+            
+            // บันทึกข้อมูลลงประวัติเซต
+            state.setHistory.push({
+                setNum: state.setHistory.length + 1,
+                scoreA: state.scoreA,
+                scoreB: state.scoreB
+            });
+
+            // ตรวจสอบระบบเพิ่มยอดเซตชนะให้อัตโนมัติ
+            if (state.scoreA > state.scoreB) state.foulA += 1;
+            else if (state.scoreB > state.scoreA) state.foulB += 1;
+
+            // เคลียร์คะแนนฝั่งเพื่อเตรียมเซตใหม่
+            state.scoreA = 0;
+            state.scoreB = 0;
+            state.period += 1;
+            emitState();
+        };
+
+        window.resetAllData = function() {
+            if(confirm("คุณต้องการรีเซ็ตค่าคะแนนและประวัติทั้งหมดใช่หรือไม่?")) {
+                state = JSON.parse(JSON.stringify(defaultState));
+                emitState();
+                location.reload();
+            }
+        };
+
+        // ทิกเกอร์สำหรับแสดงผลจำลองบนหน้า Control เท่านั้น
         setInterval(() => {
             if (state.timer.isRunning) {
-                if (state.timer.direction === 'up') {
-                    state.timer.seconds++;
-                    if (state.timer.seconds >= 60) { state.timer.minutes++; state.timer.seconds = 0; }
-                } else {
-                    if (state.timer.minutes === 0 && state.timer.seconds === 0) {
-                        state.timer.isRunning = false;
-                    } else {
-                        state.timer.seconds--;
-                        if (state.timer.seconds < 0) { state.timer.minutes--; state.timer.seconds = 59; }
-                    }
-                }
-                emitState();
+                let totalSecs = calculateCurrentSeconds(state.timer, state.timerDirection);
+                let m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+                let s = (totalSecs % 60).toString().padStart(2, '0');
+                document.getElementById('timeDisplay').innerText = `${m}:${s}`;
             }
-        }, 1000);
+        }, 500);
 
         function updateUI() {
-            // เช็คว่าถ้าผู้ใช้กำลังคลิกพิมพ์ที่ช่องไหนอยู่ จะไม่เอาค่ามาเขียนทับช่องนั้น (แก้ปัญหาพิมพ์ชื่อทีมไม่ได้)
             if (document.activeElement.id !== 'eventName') document.getElementById('eventName').value = state.eventName;
             if (document.activeElement.id !== 'nameA') document.getElementById('nameA').value = state.nameA;
             if (document.activeElement.id !== 'nameB') document.getElementById('nameB').value = state.nameB;
             
             document.getElementById('sport').value = state.sport;
-            
-            // อัปเดตสีกลับมาที่ Color Picker
-            document.getElementById('bgColor').value = state.bgColor;
-            document.getElementById('boxColor').value = state.boxColor;
+            document.getElementById('timerDirection').value = state.timerDirection;
             document.getElementById('colorA').value = state.colorA;
             document.getElementById('colorB').value = state.colorB;
+            document.getElementById('bgColor').value = state.bgColor;
             document.getElementById('textColor').value = state.textColor;
 
             document.getElementById('scoreADisplay').innerText = state.scoreA;
             document.getElementById('scoreBDisplay').innerText = state.scoreB;
             document.getElementById('foulADisplay').innerText = state.foulA;
             document.getElementById('foulBDisplay').innerText = state.foulB;
-            
-            let m = state.timer.minutes.toString().padStart(2, '0');
-            let s = state.timer.seconds.toString().padStart(2, '0');
-            document.getElementById('timeDisplay').innerText = `${m}:${s}`;
+            document.getElementById('periodDisplay').innerText = state.period;
+
+            document.getElementById('timerToggleBtn').innerText = state.timer.isRunning ? "หยุดเวลา" : "เริ่มเวลา";
+            document.getElementById('timerToggleBtn').style.background = state.timer.isRunning ? "#c62828" : "#2e7d32";
+
+            if (!state.timer.isRunning) {
+                let m = state.timer.minutes.toString().padStart(2, '0');
+                let s = state.timer.seconds.toString().padStart(2, '0');
+                document.getElementById('timeDisplay').innerText = `${m}:${s}`;
+            }
+
+            // แสดงรายการประวัติเซต
+            const listContainer = document.getElementById('setHistoryList');
+            listContainer.innerHTML = "";
+            if (state.setHistory && state.setHistory.length > 0) {
+                state.setHistory.forEach(item => {
+                    let div = document.createElement('div');
+                    div.className = "history-item";
+                    div.innerText = `เซตที่ ${item.setNum} : (ทีม A) ${item.scoreA} - ${item.scoreB} (ทีม B)`;
+                    listContainer.appendChild(div);
+                });
+            } else {
+                listContainer.innerHTML = `<div style="text-align:center;color:#666;">ยังไม่มีประวัติการแข่งคัน</div>`;
+            }
         }
 
         onValue(stateRef, (snapshot) => {
             const data = snapshot.val();
-            if (data && !window.initialized) {
-                state = { ...state, ...data }; // ผสม state ใหม่กับโครงสร้างเริ่มต้น
+            if (data) {
+                state = { ...state, ...data };
                 updateUI();
-                window.initialized = true;
             }
         });
 
-        // Cloudinary Upload
+        // Cloudinary Uploader ระบบฝากรูปอัตโนมัติ
         const CLOUD_NAME = 'dk0ypev4m'; 
         const UPLOAD_PRESET = 'khonkaen_preset';
         document.getElementById('logoUpload').addEventListener('change', async function(e) {
@@ -210,7 +305,7 @@
                     emitState(); 
                 }
             } catch (error) {
-                statusLabel.innerText = "❌ เกิดข้อผิดพลาด";
+                statusLabel.innerText = "❌ เกิดข้อผิดพลาดในการอัปโหลด";
                 statusLabel.style.color = "#f44336";
             }
         });
