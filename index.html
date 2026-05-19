@@ -3,33 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Scoreboard View</title>
+    <title>Live Scoreboard View (16:9 Static)</title>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;900&display=swap" rel="stylesheet">
     <style>
-        /* ลบ Background สีดำตายตัวออก เพื่อให้รับค่าจาก JS */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: transparent; display: flex; justify-content: center; align-items: center; overflow: hidden; font-family: 'Chakra Petch', sans-serif; }
         
-        .scoreboard-container { width: 100vw; max-width: 100%; aspect-ratio: 16 / 9; position: relative; display: flex; justify-content: center; align-items: center; }
+        /* บังคับสัดส่วนเฟรมหลักให้ล็อกที่ 16:9 พอดีจอ */
+        .scoreboard-container { width: 100vw; max-width: 100%; aspect-ratio: 16 / 9; position: relative; display: flex; justify-content: center; align-items: center; box-sizing: border-box; overflow: hidden; }
         
-        .board { width: 1920px; height: 1080px; transform-origin: center center; position: absolute; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); transition: all 0.3s ease;}
+        /* โครงร่างพิกเซลแบบคงที่เพื่อควบคุมทุกตำแหน่งให้อยู่นิ่ง ไม่ขยับเขยื้อน */
+        .board { width: 1920px; height: 1080px; transform-origin: center center; position: absolute; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; text-shadow: 3px 3px 6px rgba(0,0,0,0.9); overflow: hidden; }
 
-        .header { display: flex; align-items: center; justify-content: center; margin-top: 50px; background: rgba(0,0,0,0.6); padding: 10px 50px; border-radius: 20px; border: 3px solid #444; }
-        .event-name { font-size: 60px; font-weight: 700; text-transform: uppercase; margin: 0 30px; }
-        .logo { max-height: 120px; border-radius: 10px; display: none; }
+        .header { display: flex; align-items: center; justify-content: center; margin-top: 40px; background: rgba(0,0,0,0.6); padding: 15px 60px; border-radius: 20px; border: 4px solid #fff; height: 150px; min-width: 600px; box-sizing: border-box; }
+        .event-name { font-size: 55px; font-weight: 700; text-transform: uppercase; margin: 0 30px; text-align: center; white-space: nowrap; }
+        .logo { max-height: 110px; max-width: 150px; border-radius: 8px; display: none; object-fit: contain; }
 
-        .main-score-area { display: flex; justify-content: center; align-items: center; gap: 50px; margin-top: 40px; }
+        .main-score-area { display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: 40px; width: 100%; padding: 0 50px; box-sizing: border-box; }
         
-        /* ขอบเขตสีและการออกแบบ */
-        .team-box { display: flex; flex-direction: column; align-items: center; border: 5px solid; padding: 40px; border-radius: 30px; width: 600px; transition: all 0.3s ease; }
+        /* ออกแบบกล่องคะแนนตามสีเสื้อทีมแบบคงที่ ไม่สั่นไหว */
+        .team-box { display: flex; flex-direction: column; align-items: center; border: 8px solid #ffffff; padding: 40px 20px; border-radius: 40px; width: 620px; height: 540px; box-sizing: border-box; justify-content: space-between; }
 
-        .team-name { font-size: 70px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        .score { font-size: 250px; font-weight: 900; line-height: 1; margin: 20px 0; font-variant-numeric: tabular-nums; }
+        /* ป้องกันตัวหนังสือขยับ ขยายความกว้างคงที่ */
+        .team-name { font-size: 75px; font-weight: 900; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 100px; line-height: 100px; }
+        .score { font-size: 280px; font-weight: 900; line-height: 240px; text-align: center; width: 100%; font-variant-numeric: tabular-nums; margin: 10px 0; height: 240px; }
         
-        .stats-row { display: flex; justify-content: space-between; width: 100%; font-size: 45px; margin-top: 10px; color: inherit; opacity: 0.9;}
+        .stats-row { display: flex; justify-content: space-between; width: 100%; font-size: 45px; padding: 0 20px; box-sizing: border-box; font-variant-numeric: tabular-nums; border-top: 2px dashed rgba(255,255,255,0.4); padding-top: 15px; }
 
-        .center-info { display: flex; flex-direction: column; align-items: center; }
-        .timer-box { font-size: 180px; font-weight: 900; background: rgba(0,0,0,0.6); padding: 20px 40px; border-radius: 30px; border: 4px solid #fff; font-variant-numeric: tabular-nums; margin-bottom: 30px; }
-        .period-box { font-size: 60px; font-weight: 700; background: rgba(0,0,0,0.6); padding: 10px 40px; border-radius: 20px; }
+        .center-info { display: flex; flex-direction: column; align-items: center; width: 500px; justify-content: center; }
+        .timer-box { font-size: 150px; font-weight: 900; background: rgba(0,0,0,0.75); padding: 20px 0; border-radius: 30px; border: 5px solid #fff; font-variant-numeric: tabular-nums; margin-bottom: 25px; text-align: center; width: 100%; height: 220px; line-height: 180px; box-sizing: border-box; }
+        .period-box { font-size: 55px; font-weight: 700; background: rgba(0,0,0,0.75); padding: 15px 0; border-radius: 20px; text-align: center; width: 100%; border: 3px solid #666; white-space: nowrap; }
+
+        /* ส่วนแสดงประวัติเซตที่ผ่านไป ยึดด้านล่างสุด */
+        .set-history-row { display: flex; justify-content: center; gap: 15px; width: 100%; margin-top: auto; margin-bottom: 40px; padding: 0 50px; box-sizing: border-box; }
+        .set-badge { background: rgba(0,0,0,0.7); border: 3px solid #fff; padding: 10px 25px; border-radius: 15px; font-size: 35px; font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -46,7 +52,7 @@
                 <div class="team-box" id="teamABox">
                     <div class="team-name" id="nameADisplay">TEAM A</div>
                     <div class="score" id="scoreADisplay">0</div>
-                    <div class="stats-row" id="statsRowA">
+                    <div class="stats-row">
                         <span id="foulALabel">FOULS</span>
                         <span id="foulADisplay">0</span>
                     </div>
@@ -60,17 +66,20 @@
                 <div class="team-box" id="teamBBox">
                     <div class="team-name" id="nameBDisplay">TEAM B</div>
                     <div class="score" id="scoreBDisplay">0</div>
-                    <div class="stats-row" id="statsRowB">
+                    <div class="stats-row">
                         <span id="foulBLabel">FOULS</span>
                         <span id="foulBDisplay">0</span>
                     </div>
                 </div>
             </div>
 
+            <div class="set-history-row" id="scoreboardHistoryRow"></div>
+
         </div>
     </div>
 
     <script>
+        // ระบบ Auto-Scale เพื่อคุมสัดส่วน 16:9 ตลอดเวลา
         function resizeBoard() {
             const container = document.getElementById('scale-container');
             const board = document.getElementById('main-board');
@@ -101,13 +110,30 @@
         const db = getDatabase(app);
         const stateRef = ref(db, 'scoreboard/state');
 
+        let localTimerState = { minutes: 0, seconds: 0, isRunning: false, lastUpdatedTime: 0 };
+        let localDirection = 'up';
+
         onValue(stateRef, (snapshot) => {
             const state = snapshot.val();
-            if (state) updateScoreboard(state);
+            if (state) {
+                updateScoreboard(state);
+            }
         });
 
+        // ลูปประมวลผลคำนวณเวลาฝั่ง Client หน้าจอ Scoreboard เองแบบอิสระ หมดปัญหามือถือสลีป
+        setInterval(() => {
+            if (localTimerState.isRunning && localTimerState.lastUpdatedTime > 0) {
+                let baseSecs = (localTimerState.minutes * 60) + localTimerState.seconds;
+                let diff = Math.floor((Date.now() - localTimerState.lastUpdatedTime) / 1000);
+                let currentTotal = localDirection === 'up' ? baseSecs + diff : Math.max(0, baseSecs - diff);
+                
+                let m = Math.floor(currentTotal / 60).toString().padStart(2, '0');
+                let s = (currentTotal % 60).toString().padStart(2, '0');
+                document.getElementById('timeDisplay').innerText = `${m}:${s}`;
+            }
+        }, 200);
+
         function updateScoreboard(state) {
-            // ข้อมูลทั่วไป
             document.getElementById('eventNameDisplay').innerText = state.eventName;
             document.getElementById('nameADisplay').innerText = state.nameA;
             document.getElementById('nameBDisplay').innerText = state.nameB;
@@ -117,17 +143,26 @@
             document.getElementById('foulBDisplay').innerText = state.foulB;
             document.getElementById('periodDisplay').innerText = state.period;
 
-            // เวลา
-            let m = state.timer.minutes.toString().padStart(2, '0');
-            let s = state.timer.seconds.toString().padStart(2, '0');
-            document.getElementById('timeDisplay').innerText = `${m}:${s}`;
+            // คัดลอกค่าเวลาไปคำนวณที่เครื่องลูกข่าย
+            localTimerState = state.timer || { minutes:0, seconds:0, isRunning:false, lastUpdatedTime:0 };
+            localDirection = state.timerDirection || 'up';
 
-            // โลโก้
+            if (!localTimerState.isRunning) {
+                let m = localTimerState.minutes.toString().padStart(2, '0');
+                let s = localTimerState.seconds.toString().padStart(2, '0');
+                document.getElementById('timeDisplay').innerText = `${m}:${s}`;
+            }
+
+            // แสดงหรือซ่อนโลโก้การแข่งขัน
             const logo = document.getElementById('mainLogo');
-            if (state.showLogo && state.logoUrl) { logo.src = state.logoUrl; logo.style.display = 'block'; } 
-            else { logo.style.display = 'none'; }
+            if (state.showLogo && state.logoUrl) {
+                logo.src = state.logoUrl;
+                logo.style.display = 'block';
+            } else {
+                logo.style.display = 'none';
+            }
 
-            // เปลี่ยนป้ายตามประเภทกีฬา (Sport Types)
+            // จัดการเปลี่ยนชื่อฉลากป้ายข้อมูลตามประเภทกีฬา
             const pLabel = document.getElementById('periodLabel');
             const faLabel = document.getElementById('foulALabel');
             const fbLabel = document.getElementById('foulBLabel');
@@ -140,26 +175,37 @@
                 pLabel.innerText = 'QUARTER';
                 faLabel.innerText = 'FOULS';
                 fbLabel.innerText = 'FOULS';
-            } else { // Futsal / Football
+            } else {
                 pLabel.innerText = 'HALF'; 
                 faLabel.innerText = 'FOULS';
                 fbLabel.innerText = 'FOULS';
             }
 
-            // จัดการสีพื้นหลังและสีตัวอักษร
+            // บังคับเปลี่ยนสีพื้นหลังและสีตัวอักษรตามสั่ง
             const board = document.getElementById('main-board');
             board.style.backgroundColor = state.bgColor || '#000000';
             board.style.color = state.textColor || '#ffffff';
 
+            // ดึงสีเสื้อทีมที่ถูกสั่งเปลี่ยนจากหน้า Control มาเป็นพื้นกล่องโดยตรง พร้อมล็อกขอบเป็นสีขาวล้วน
             const teamABox = document.getElementById('teamABox');
             const teamBBox = document.getElementById('teamBBox');
             
-            // ใช้ opacity ช่วยให้สีกล่องดูละมุนขึ้น หากไม่อยากได้แบบใส สามารถเปลี่ยนในหน้า Control ได้
-            teamABox.style.backgroundColor = state.boxColor || '#141414';
-            teamBBox.style.backgroundColor = state.boxColor || '#141414';
-            
-            teamABox.style.borderColor = state.colorA || '#ff5252';
-            teamBBox.style.borderColor = state.colorB || '#448aff';
+            teamABox.style.backgroundColor = state.colorA || '#ff5252';
+            teamBBox.style.backgroundColor = state.colorB || '#448aff';
+            teamABox.style.borderColor = '#ffffff';
+            teamBBox.style.borderColor = '#ffffff';
+
+            // จัดการเรนเดอร์ข้อมูลประวัติคะแนนแต่ละเซต (Set History) ที่บันทึกไว้
+            const historyRow = document.getElementById('scoreboardHistoryRow');
+            historyRow.innerHTML = "";
+            if (state.setHistory && state.setHistory.length > 0) {
+                state.setHistory.forEach(item => {
+                    let badge = document.createElement('div');
+                    badge.className = "set-badge";
+                    badge.innerText = `SET ${item.setNum}: ${item.scoreA} - ${item.scoreB}`;
+                    historyRow.appendChild(badge);
+                });
+            }
         }
     </script>
 </body>
