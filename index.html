@@ -19,17 +19,23 @@
 
         .main-score-area { display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: 40px; width: 100%; padding: 0 50px; box-sizing: border-box; }
         
-        .team-box { display: flex; flex-direction: column; align-items: center; border: 8px solid #ffffff; padding: 30px 20px; border-radius: 40px; width: 620px; height: 600px; box-sizing: border-box; justify-content: flex-start; }
+        /* เลย์เอาต์ใหม่กล่องคะแนน */
+        .team-box { display: flex; flex-direction: column; align-items: center; border: 8px solid #ffffff; padding: 25px 20px; border-radius: 40px; width: 620px; height: 680px; box-sizing: border-box; justify-content: flex-start; }
 
-        /* โลโก้ทีมในกล่องคะแนน ล็อกความสูงไว้เพื่อไม่ให้ UI กระโดด */
-        .team-logo { height: 140px; width: 200px; object-fit: contain; margin-bottom: 10px; opacity: 0; transition: opacity 0.3s; }
+        .team-logo { height: 120px; width: 200px; object-fit: contain; opacity: 0; transition: opacity 0.3s; margin-bottom: 5px; }
         .team-logo.show { opacity: 1; }
 
-        .team-name { font-size: 70px; font-weight: 900; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 90px; line-height: 90px; }
-        .score { font-size: 260px; font-weight: 900; line-height: 220px; text-align: center; width: 100%; font-variant-numeric: tabular-nums; margin: 5px 0; height: 220px; }
+        /* คะแนนสลับมาอยู่ด้านบนชื่อทีม */
+        .score { font-size: 260px; font-weight: 900; line-height: 220px; text-align: center; width: 100%; font-variant-numeric: tabular-nums; margin: 0; height: 220px; }
         
-        /* ข้อมูลฟาวล์ใช้ visibility เพื่อคงขนาดพื้นที่ไว้เสมอแม้อยู่ในโหมดที่ซ่อน */
-        .stats-row { display: flex; justify-content: space-between; width: 100%; font-size: 45px; padding: 0 20px; box-sizing: border-box; font-variant-numeric: tabular-nums; border-top: 2px dashed rgba(255,255,255,0.4); padding-top: 15px; margin-top: 10px; visibility: visible; }
+        /* แก้ปัญหาสระ วรรณยุกต์ขาดหายด้วย Flexbox และ padding */
+        .team-name { font-size: 70px; font-weight: 900; text-align: center; width: 100%; white-space: nowrap; height: 120px; display: flex; justify-content: center; align-items: center; padding: 10px 0; }
+        
+        /* โซนแสดงคะแนนจุดโทษ (โชว์เฉพาะเปิดโหมด Penalty) */
+        .penalty-score { font-size: 80px; font-weight: 900; color: #ffeb3b; height: 90px; line-height: 90px; display: none; text-shadow: 4px 4px 8px #000; }
+
+        /* ดันส่วนฟาวล์ลงไปชิดด้านล่างสุดเสมอ */
+        .stats-row { display: flex; justify-content: space-between; width: 100%; font-size: 45px; padding: 0 20px; box-sizing: border-box; font-variant-numeric: tabular-nums; border-top: 2px dashed rgba(255,255,255,0.4); padding-top: 15px; margin-top: auto; visibility: visible; }
 
         .center-info { display: flex; flex-direction: column; align-items: center; width: 500px; justify-content: center; }
         .timer-box { font-size: 150px; font-weight: 900; background: rgba(0,0,0,0.75); padding: 20px 0; border-radius: 30px; border: 5px solid #fff; font-variant-numeric: tabular-nums; margin-bottom: 25px; text-align: center; width: 100%; height: 220px; line-height: 180px; box-sizing: border-box; visibility: visible; }
@@ -49,8 +55,9 @@
             <div class="main-score-area">
                 <div class="team-box" id="teamABox">
                     <img id="logoA" class="team-logo" src="" alt="Team A Logo">
-                    <div class="team-name" id="nameADisplay">TEAM A</div>
                     <div class="score" id="scoreADisplay">0</div>
+                    <div class="team-name" id="nameADisplay">TEAM A</div>
+                    <div class="penalty-score" id="penaltyADisplay">(0)</div>
                     <div class="stats-row" id="statsRowA">
                         <span id="foulALabel">FOULS</span>
                         <span id="foulADisplay">0</span>
@@ -64,8 +71,9 @@
 
                 <div class="team-box" id="teamBBox">
                     <img id="logoB" class="team-logo" src="" alt="Team B Logo">
-                    <div class="team-name" id="nameBDisplay">TEAM B</div>
                     <div class="score" id="scoreBDisplay">0</div>
+                    <div class="team-name" id="nameBDisplay">TEAM B</div>
+                    <div class="penalty-score" id="penaltyBDisplay">(0)</div>
                     <div class="stats-row" id="statsRowB">
                         <span id="foulBLabel">FOULS</span>
                         <span id="foulBDisplay">0</span>
@@ -146,20 +154,32 @@
                 document.getElementById('timeDisplay').innerText = `${m}:${s}`;
             }
 
-            // จัดการโลโก้ทั้ง 3 ส่วน (ใช้ opacity แทน display:none เพื่อรักษาระยะ Layout ไม่ให้กระโดด)
+            // จัดการโลโก้ทั้ง 3 ส่วน
             const mainLogo = document.getElementById('mainLogo');
             if (state.showLogo && state.logoUrl) { mainLogo.src = state.logoUrl; mainLogo.classList.add('show'); } 
             else { mainLogo.classList.remove('show'); }
 
+            // โลโก้ทีมใช้ state เดียวกัน (เปิด/ปิด พร้อมกัน)
             const logoA = document.getElementById('logoA');
-            if (state.showLogoA && state.logoUrlA) { logoA.src = state.logoUrlA; logoA.classList.add('show'); } 
+            if (state.showTeamLogos && state.logoUrlA) { logoA.src = state.logoUrlA; logoA.classList.add('show'); } 
             else { logoA.classList.remove('show'); }
 
             const logoB = document.getElementById('logoB');
-            if (state.showLogoB && state.logoUrlB) { logoB.src = state.logoUrlB; logoB.classList.add('show'); } 
+            if (state.showTeamLogos && state.logoUrlB) { logoB.src = state.logoUrlB; logoB.classList.add('show'); } 
             else { logoB.classList.remove('show'); }
 
-            // การซ่อนโชว์ UI ตามชนิดกีฬา (ใช้ visibility เพื่อรักษาสัดส่วนกรอบ 16:9 ให้อยู่นิ่งตลอดเวลา)
+            // จัดการระบบจุดโทษ (ซ่อน/โชว์ คะแนนจุดโทษสีเหลือง)
+            const penA = document.getElementById('penaltyADisplay');
+            const penB = document.getElementById('penaltyBDisplay');
+            if (state.isPenalty) {
+                penA.style.display = 'block'; penA.innerText = `(${state.penaltyA})`;
+                penB.style.display = 'block'; penB.innerText = `(${state.penaltyB})`;
+            } else {
+                penA.style.display = 'none';
+                penB.style.display = 'none';
+            }
+
+            // การซ่อนโชว์ UI ตามชนิดกีฬา 
             const pLabel = document.getElementById('periodLabel');
             const timerBox = document.getElementById('timeDisplay');
             const statsRowA = document.getElementById('statsRowA');
@@ -167,7 +187,7 @@
 
             if (state.sport === 'volleyball') {
                 pLabel.innerText = 'SET';
-                timerBox.style.visibility = 'hidden';  // ซ่อนเวลาเมื่อนับเซต
+                timerBox.style.visibility = 'hidden';
                 statsRowA.style.visibility = 'visible';
                 statsRowB.style.visibility = 'visible';
             } else if (state.sport === 'basketball') {
@@ -178,11 +198,11 @@
             } else { // Futsal
                 pLabel.innerText = 'HALF'; 
                 timerBox.style.visibility = 'visible';
-                statsRowA.style.visibility = 'hidden'; // ซ่อนฟาวล์เมื่อเป็นฟุตบอล
+                statsRowA.style.visibility = 'hidden'; 
                 statsRowB.style.visibility = 'hidden';
             }
 
-            // การควบคุมสี
+            // การควบคุมสีกล่องและพื้นหลัง
             const board = document.getElementById('main-board');
             board.style.backgroundColor = state.bgColor || '#000000';
             board.style.color = state.textColor || '#ffffff';
