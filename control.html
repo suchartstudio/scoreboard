@@ -23,8 +23,10 @@
         button.btn-orange { background: #e65100; }
 
         input[type="text"], input[type="number"], select { font-family: 'Chakra Petch'; width: 100%; box-sizing: border-box; padding: 12px; font-size: 16px; background: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; }
+        input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; background: transparent; padding: 0; }
         
         .score-display { font-size: 40px; font-weight: bold; text-align: center; margin: 10px 0; }
+        .color-label { display: flex; flex-direction: column; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -32,12 +34,23 @@
 
     <div class="control-box">
         <h3>🏆 ข้อมูลการแข่งขัน</h3>
-        <input type="text" id="eventName" placeholder="ชื่อรายการแข่งขัน" onchange="updateState('eventName', this.value)">
+        <input type="text" id="eventName" placeholder="ชื่อรายการแข่งขัน" oninput="updateState('eventName', this.value)">
         <select id="sport" onchange="updateState('sport', this.value)">
             <option value="futsal">Futsal / Football</option>
             <option value="basketball">Basketball</option>
             <option value="volleyball">Volleyball / Badminton</option>
         </select>
+    </div>
+
+    <div class="control-box">
+        <h3>🎨 สีและธีม (Scoreboard)</h3>
+        <div class="grid-2">
+            <label class="color-label">สีพื้นหลังหน้าจอ: <input type="color" id="bgColor" onchange="updateState('bgColor', this.value)"></label>
+            <label class="color-label">สีกล่องคะแนน: <input type="color" id="boxColor" onchange="updateState('boxColor', this.value)"></label>
+            <label class="color-label">สีขอบทีม A (ซ้าย): <input type="color" id="colorA" onchange="updateState('colorA', this.value)"></label>
+            <label class="color-label">สีขอบทีม B (ขวา): <input type="color" id="colorB" onchange="updateState('colorB', this.value)"></label>
+            <label class="color-label">สีตัวหนังสือหลัก: <input type="color" id="textColor" onchange="updateState('textColor', this.value)"></label>
+        </div>
     </div>
 
     <div class="control-box">
@@ -55,38 +68,38 @@
             <button class="btn-orange" onclick="resetTimer(20, 0)">รีเซ็ต 20 นาที</button>
         </div>
         <div style="margin-top: 10px;">
-            <button onclick="updateState('period', state.period + 1)">+ Period/Set</button>
+            <button onclick="updateState('period', state.period + 1)">+ Period/Set/Quarter</button>
         </div>
     </div>
 
     <div class="grid-2">
         <div class="control-box">
             <h3 style="color: #ff5252;">ทีม A (ซ้าย)</h3>
-            <input type="text" id="nameA" placeholder="ชื่อทีม A" onchange="updateState('nameA', this.value)">
+            <input type="text" id="nameA" placeholder="ชื่อทีม A" oninput="updateState('nameA', this.value)">
             <div class="score-display" id="scoreADisplay">0</div>
             <div class="grid-2">
                 <button class="btn-green" onclick="updateStat('scoreA', 1)">+ คะแนน</button>
                 <button class="btn-red" onclick="updateStat('scoreA', -1)">- คะแนน</button>
             </div>
-            <div class="score-display" style="font-size: 20px; margin-top: 15px;">Foul: <span id="foulADisplay">0</span></div>
+            <div class="score-display" style="font-size: 20px; margin-top: 15px;">ฟาวล์/เซต: <span id="foulADisplay">0</span></div>
             <div class="grid-2">
-                <button onclick="updateStat('foulA', 1)">+ Foul</button>
-                <button onclick="updateStat('foulA', -1)">- Foul</button>
+                <button onclick="updateStat('foulA', 1)">+ ค่า</button>
+                <button onclick="updateStat('foulA', -1)">- ค่า</button>
             </div>
         </div>
 
         <div class="control-box">
             <h3 style="color: #448aff;">ทีม B (ขวา)</h3>
-            <input type="text" id="nameB" placeholder="ชื่อทีม B" onchange="updateState('nameB', this.value)">
+            <input type="text" id="nameB" placeholder="ชื่อทีม B" oninput="updateState('nameB', this.value)">
             <div class="score-display" id="scoreBDisplay">0</div>
             <div class="grid-2">
                 <button class="btn-green" onclick="updateStat('scoreB', 1)">+ คะแนน</button>
                 <button class="btn-red" onclick="updateStat('scoreB', -1)">- คะแนน</button>
             </div>
-            <div class="score-display" style="font-size: 20px; margin-top: 15px;">Foul: <span id="foulBDisplay">0</span></div>
+            <div class="score-display" style="font-size: 20px; margin-top: 15px;">ฟาวล์/เซต: <span id="foulBDisplay">0</span></div>
             <div class="grid-2">
-                <button onclick="updateStat('foulB', 1)">+ Foul</button>
-                <button onclick="updateStat('foulB', -1)">- Foul</button>
+                <button onclick="updateStat('foulB', 1)">+ ค่า</button>
+                <button onclick="updateStat('foulB', -1)">- ค่า</button>
             </div>
         </div>
     </div>
@@ -102,33 +115,28 @@
             storageBucket: "post-it-kk-election.firebasestorage.app",
             messagingSenderId: "323275742590",
             appId: "1:323275742590:web:7bbb20241bca6cca46672f",
-            databaseURL: "https://post-it-kk-election-default-rtdb.firebaseio.com/"
+            databaseURL: "https://post-it-kk-election-default-rtdb.asia-southeast1.firebasedatabase.app" // แก้ให้ตรงกับของคุณถ้าจำเป็น
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const stateRef = ref(db, 'scoreboard/state');
 
-        // State พื้นฐาน
+        // State พื้นฐาน (เพิ่มเรื่องสีเข้ามา)
         window.state = {
             sport: 'futsal', eventName: 'การแข่งขันกีฬา', period: 1,
             showLogo: false, logoUrl: '',
             timer: { minutes: 0, seconds: 0, isRunning: false, direction: 'up' },
-            scoreA: 0, scoreB: 0, foulA: 0, foulB: 0, nameA: 'Team A', nameB: 'Team B'
+            scoreA: 0, scoreB: 0, foulA: 0, foulB: 0, nameA: 'Team A', nameB: 'Team B',
+            bgColor: '#000000', boxColor: '#141414', colorA: '#ff5252', colorB: '#448aff', textColor: '#ffffff'
         };
 
-        window.emitState = function() {
-            set(stateRef, state);
-            updateUI();
-        };
+        window.emitState = function() { set(stateRef, state); updateUI(); };
+        window.updateState = function(key, value) { state[key] = value; emitState(); };
+        window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); };
+        window.toggleTimer = function() { state.timer.isRunning = !state.timer.isRunning; emitState(); };
+        window.resetTimer = function(m, s) { state.timer.minutes = m; state.timer.seconds = s; state.timer.isRunning = false; emitState(); };
 
-        // ฟังชั่นควบคุมต่างๆ
-        window.updateState = function(key, value) { state[key] = value; emitState(); }
-        window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); }
-        window.toggleTimer = function() { state.timer.isRunning = !state.timer.isRunning; emitState(); }
-        window.resetTimer = function(m, s) { state.timer.minutes = m; state.timer.seconds = s; state.timer.isRunning = false; emitState(); }
-
-        // ระบบจับเวลา
         setInterval(() => {
             if (state.timer.isRunning) {
                 if (state.timer.direction === 'up') {
@@ -147,9 +155,20 @@
         }, 1000);
 
         function updateUI() {
-            document.getElementById('eventName').value = state.eventName;
-            document.getElementById('nameA').value = state.nameA;
-            document.getElementById('nameB').value = state.nameB;
+            // เช็คว่าถ้าผู้ใช้กำลังคลิกพิมพ์ที่ช่องไหนอยู่ จะไม่เอาค่ามาเขียนทับช่องนั้น (แก้ปัญหาพิมพ์ชื่อทีมไม่ได้)
+            if (document.activeElement.id !== 'eventName') document.getElementById('eventName').value = state.eventName;
+            if (document.activeElement.id !== 'nameA') document.getElementById('nameA').value = state.nameA;
+            if (document.activeElement.id !== 'nameB') document.getElementById('nameB').value = state.nameB;
+            
+            document.getElementById('sport').value = state.sport;
+            
+            // อัปเดตสีกลับมาที่ Color Picker
+            document.getElementById('bgColor').value = state.bgColor;
+            document.getElementById('boxColor').value = state.boxColor;
+            document.getElementById('colorA').value = state.colorA;
+            document.getElementById('colorB').value = state.colorB;
+            document.getElementById('textColor').value = state.textColor;
+
             document.getElementById('scoreADisplay').innerText = state.scoreA;
             document.getElementById('scoreBDisplay').innerText = state.scoreB;
             document.getElementById('foulADisplay').innerText = state.foulA;
@@ -160,11 +179,10 @@
             document.getElementById('timeDisplay').innerText = `${m}:${s}`;
         }
 
-        // ดึงข้อมูลครั้งแรก
         onValue(stateRef, (snapshot) => {
             const data = snapshot.val();
             if (data && !window.initialized) {
-                state = data;
+                state = { ...state, ...data }; // ผสม state ใหม่กับโครงสร้างเริ่มต้น
                 updateUI();
                 window.initialized = true;
             }
@@ -173,24 +191,17 @@
         // Cloudinary Upload
         const CLOUD_NAME = 'dk0ypev4m'; 
         const UPLOAD_PRESET = 'khonkaen_preset';
-
         document.getElementById('logoUpload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const statusLabel = document.getElementById('uploadStatus');
             statusLabel.innerText = "⏳ กำลังอัปโหลดโลโก้...";
-
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', UPLOAD_PRESET);
-
             try {
-                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-                    method: 'POST', body: formData
-                });
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
                 const data = await response.json();
-
                 if (data.secure_url) {
                     statusLabel.innerText = "✅ อัปโหลดสำเร็จ!";
                     statusLabel.style.color = "#66bb6a";
