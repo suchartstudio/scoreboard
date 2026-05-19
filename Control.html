@@ -3,31 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scoreboard Controller</title>
+    <title>Scoreboard Controller (Mobile)</title>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        /* [คง CSS เดิมไว้ทั้งหมด และเพิ่ม Media Query สำหรับมือถือด้านล่างนี้] */
         :root { --bg-main: #121212; --bg-card: #1e1e1e; --text-main: #e0e0e0; --border-color: #333333; --input-bg: #2d2d2d; }
         body { font-family: 'Chakra Petch', sans-serif; padding: 15px; background: var(--bg-main); color: var(--text-main); margin: 0; }
         
-        /* ปรับ Grid ให้เป็น Mobile-First (แนวตั้ง) */
-        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .control-box { background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+        h3 { margin-top: 0; font-size: 18px; color: #fff; }
         
-        /* ปรับขนาดปุ่มและตัวหนังสือให้ใหญ่ขึ้น กดง่ายบนหน้าจอมือถือ */
-        button { font-family: 'Chakra Petch'; padding: 15px; font-size: 18px; width: 100%; margin: 5px 0; border-radius: 8px; }
-        input[type="text"], input[type="number"], select { font-size: 18px; padding: 12px; }
-        .score-display { font-size: 60px; }
-        .tabs { display: flex; overflow-x: auto; white-space: nowrap; padding-bottom: 10px; }
-        .tab-btn { flex: 0 0 auto; width: auto; font-size: 16px; padding: 12px 15px; }
+        .grid-1 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        button { font-family: 'Chakra Petch'; padding: 15px; font-size: 16px; font-weight: bold; width: 100%; border-radius: 8px; cursor: pointer; border: none; background: #3a3a3a; color: white; transition: 0.2s; }
+        button:active { transform: scale(0.98); background: #555; }
+        button.btn-green { background: #2e7d32; }
+        button.btn-red { background: #c62828; }
+        button.btn-blue { background: #1565c0; }
+        button.btn-orange { background: #e65100; }
 
-        @media (min-width: 768px) {
-            /* เมื่อเป็นหน้าจอใหญ่ ให้กลับไปเป็น 2 คอลัมน์ */
-            .grid-2 { grid-template-columns: 1fr 1fr; }
-            button { width: auto; margin: 5px 2px; }
-        }
+        input[type="text"], input[type="number"], select { font-family: 'Chakra Petch'; width: 100%; box-sizing: border-box; padding: 12px; font-size: 16px; background: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; }
+        
+        .score-display { font-size: 40px; font-weight: bold; text-align: center; margin: 10px 0; }
     </style>
 </head>
 <body>
+    <h2 style="text-align: center;">⚙️ Controller</h2>
+
+    <div class="control-box">
+        <h3>🏆 ข้อมูลการแข่งขัน</h3>
+        <input type="text" id="eventName" placeholder="ชื่อรายการแข่งขัน" onchange="updateState('eventName', this.value)">
+        <select id="sport" onchange="updateState('sport', this.value)">
+            <option value="futsal">Futsal / Football</option>
+            <option value="basketball">Basketball</option>
+            <option value="volleyball">Volleyball / Badminton</option>
+        </select>
+    </div>
+
+    <div class="control-box">
+        <h3>🖼️ โลโก้ (Cloudinary)</h3>
+        <input type="file" id="logoUpload" accept="image/*">
+        <div id="uploadStatus" style="font-size: 14px; margin-top: 5px; color: #ffca28;"></div>
+        <button class="btn-blue" onclick="state.showLogo = !state.showLogo; emitState();" style="margin-top: 10px;">เปิด/ปิด โลโก้</button>
+    </div>
+
+    <div class="control-box">
+        <h3>⏱️ เวลา</h3>
+        <div class="score-display" id="timeDisplay">00:00</div>
+        <div class="grid-2">
+            <button class="btn-green" onclick="toggleTimer()">เริ่ม / หยุด เวลา</button>
+            <button class="btn-orange" onclick="resetTimer(20, 0)">รีเซ็ต 20 นาที</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <button onclick="updateState('period', state.period + 1)">+ Period/Set</button>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="control-box">
+            <h3 style="color: #ff5252;">ทีม A (ซ้าย)</h3>
+            <input type="text" id="nameA" placeholder="ชื่อทีม A" onchange="updateState('nameA', this.value)">
+            <div class="score-display" id="scoreADisplay">0</div>
+            <div class="grid-2">
+                <button class="btn-green" onclick="updateStat('scoreA', 1)">+ คะแนน</button>
+                <button class="btn-red" onclick="updateStat('scoreA', -1)">- คะแนน</button>
+            </div>
+            <div class="score-display" style="font-size: 20px; margin-top: 15px;">Foul: <span id="foulADisplay">0</span></div>
+            <div class="grid-2">
+                <button onclick="updateStat('foulA', 1)">+ Foul</button>
+                <button onclick="updateStat('foulA', -1)">- Foul</button>
+            </div>
+        </div>
+
+        <div class="control-box">
+            <h3 style="color: #448aff;">ทีม B (ขวา)</h3>
+            <input type="text" id="nameB" placeholder="ชื่อทีม B" onchange="updateState('nameB', this.value)">
+            <div class="score-display" id="scoreBDisplay">0</div>
+            <div class="grid-2">
+                <button class="btn-green" onclick="updateStat('scoreB', 1)">+ คะแนน</button>
+                <button class="btn-red" onclick="updateStat('scoreB', -1)">- คะแนน</button>
+            </div>
+            <div class="score-display" style="font-size: 20px; margin-top: 15px;">Foul: <span id="foulBDisplay">0</span></div>
+            <div class="grid-2">
+                <button onclick="updateStat('foulB', 1)">+ Foul</button>
+                <button onclick="updateStat('foulB', -1)">- Foul</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -45,14 +108,27 @@
         const db = getDatabase(app);
         const stateRef = ref(db, 'scoreboard/state');
 
-        // ฟังก์ชันส่งข้อมูลไปยัง Firebase ทุกครั้งที่มีการเปลี่ยนแปลงจาก Controller
-        window.emitState = function() {
-            set(stateRef, state);
+        // State พื้นฐาน
+        window.state = {
+            sport: 'futsal', eventName: 'การแข่งขันกีฬา', period: 1,
+            showLogo: false, logoUrl: '',
+            timer: { minutes: 0, seconds: 0, isRunning: false, direction: 'up' },
+            scoreA: 0, scoreB: 0, foulA: 0, foulB: 0, nameA: 'Team A', nameB: 'Team B'
         };
 
-        // ย้ายระบบนับเวลา (Timer) จาก server.js มาไว้ที่ Controller
+        window.emitState = function() {
+            set(stateRef, state);
+            updateUI();
+        };
+
+        // ฟังชั่นควบคุมต่างๆ
+        window.updateState = function(key, value) { state[key] = value; emitState(); }
+        window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); }
+        window.toggleTimer = function() { state.timer.isRunning = !state.timer.isRunning; emitState(); }
+        window.resetTimer = function(m, s) { state.timer.minutes = m; state.timer.seconds = s; state.timer.isRunning = false; emitState(); }
+
+        // ระบบจับเวลา
         setInterval(() => {
-            let stateChanged = false;
             if (state.timer.isRunning) {
                 if (state.timer.direction === 'up') {
                     state.timer.seconds++;
@@ -65,31 +141,65 @@
                         if (state.timer.seconds < 0) { state.timer.minutes--; state.timer.seconds = 59; }
                     }
                 }
-                stateChanged = true;
-            }
-
-            if (state.shotClock.isRunning) {
-                if (state.shotClock.seconds > 0) {
-                    state.shotClock.seconds--;
-                } else {
-                    state.shotClock.isRunning = false;
-                }
-                stateChanged = true;
-            }
-
-            // ซิงค์เวลาขึ้น Firebase ทุกๆ 1 วินาที
-            if (stateChanged) {
                 emitState();
             }
         }, 1000);
 
-        // ดึงข้อมูลครั้งแรกเมื่อเปิดหน้า
+        function updateUI() {
+            document.getElementById('eventName').value = state.eventName;
+            document.getElementById('nameA').value = state.nameA;
+            document.getElementById('nameB').value = state.nameB;
+            document.getElementById('scoreADisplay').innerText = state.scoreA;
+            document.getElementById('scoreBDisplay').innerText = state.scoreB;
+            document.getElementById('foulADisplay').innerText = state.foulA;
+            document.getElementById('foulBDisplay').innerText = state.foulB;
+            
+            let m = state.timer.minutes.toString().padStart(2, '0');
+            let s = state.timer.seconds.toString().padStart(2, '0');
+            document.getElementById('timeDisplay').innerText = `${m}:${s}`;
+        }
+
+        // ดึงข้อมูลครั้งแรก
         onValue(stateRef, (snapshot) => {
             const data = snapshot.val();
             if (data && !window.initialized) {
                 state = data;
-                updateUI(); // ฟังก์ชันอัปเดตหน้าจอ Control เดิมของคุณ
+                updateUI();
                 window.initialized = true;
+            }
+        });
+
+        // Cloudinary Upload
+        const CLOUD_NAME = 'dk0ypev4m'; 
+        const UPLOAD_PRESET = 'khonkaen_preset';
+
+        document.getElementById('logoUpload').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const statusLabel = document.getElementById('uploadStatus');
+            statusLabel.innerText = "⏳ กำลังอัปโหลดโลโก้...";
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: 'POST', body: formData
+                });
+                const data = await response.json();
+
+                if (data.secure_url) {
+                    statusLabel.innerText = "✅ อัปโหลดสำเร็จ!";
+                    statusLabel.style.color = "#66bb6a";
+                    state.logoUrl = data.secure_url; 
+                    state.showLogo = true; 
+                    emitState(); 
+                }
+            } catch (error) {
+                statusLabel.innerText = "❌ เกิดข้อผิดพลาด";
+                statusLabel.style.color = "#f44336";
             }
         });
     </script>
