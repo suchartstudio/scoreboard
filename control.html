@@ -63,10 +63,12 @@
     </div>
 
     <div class="control-box">
-        <h3>🔄 ระยะเวลาแข่งขัน (ปัจจุบัน: <input type="text" id="periodInput" onchange="updateState('period', this.value)" style="width: 80px; display:inline-block; padding: 5px; text-align: center;">)</h3>
+        <h3>🔄 ระยะเวลาแข่งขัน (ปัจจุบัน: <input type="text" id="periodInput" onchange="updateState('period', this.value)" style="width: 60px; display:inline-block; padding: 5px; text-align: center; font-weight: bold;">)</h3>
         <div class="grid-2" style="margin-bottom: 10px;">
-            <button class="btn-green" onclick="updateState('period', '1')">ครึ่ง 1</button>
-            <button class="btn-green" onclick="updateState('period', '2')">ครึ่ง 2</button>
+            <button class="btn-green" onclick="changePeriod(1)">+ เพิ่ม Period</button>
+            <button class="btn-red" onclick="changePeriod(-1)">- ลด Period</button>
+        </div>
+        <div class="grid-2" style="margin-bottom: 10px;">
             <button class="btn-orange" onclick="updateState('period', 'ET1')">ต่อเวลา 1</button>
             <button class="btn-orange" onclick="updateState('period', 'ET2')">ต่อเวลา 2</button>
         </div>
@@ -212,12 +214,22 @@
         window.updateState = function(key, value) { state[key] = value; emitState(); };
         window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); };
 
-        // --- แก้ไขระบบจุดโทษให้แปลง Object จาก Firebase ให้เป็น Array เสมอ ---
+        // ฟังก์ชันบวก/ลบ Period
+        window.changePeriod = function(val) {
+            let pNum = parseInt(state.period);
+            if (isNaN(pNum)) pNum = 0; // กรณีที่อยู่หน้าจุดโทษหรือต่อเวลา
+            state.period = Math.max(1, pNum + val).toString();
+            
+            // ปิดโหมดจุดโทษออโต้หากเปลี่ยน period
+            if (state.isPenalty && state.period !== 'PEN') {
+                state.isPenalty = false;
+            }
+            emitState();
+        };
+
         window.addPenalty = function(team, result) {
-            // เช็คและแปลงเป็น Array ก่อน Push เพื่อป้องกัน Error
             if (!Array.isArray(state.penaltyA)) state.penaltyA = state.penaltyA ? Object.values(state.penaltyA) : [];
             if (!Array.isArray(state.penaltyB)) state.penaltyB = state.penaltyB ? Object.values(state.penaltyB) : [];
-            
             if (team === 'A') state.penaltyA.push(result);
             if (team === 'B') state.penaltyB.push(result);
             emitState();
@@ -226,7 +238,6 @@
         window.undoPenalty = function(team) {
             if (!Array.isArray(state.penaltyA)) state.penaltyA = state.penaltyA ? Object.values(state.penaltyA) : [];
             if (!Array.isArray(state.penaltyB)) state.penaltyB = state.penaltyB ? Object.values(state.penaltyB) : [];
-
             if (team === 'A' && state.penaltyA.length > 0) state.penaltyA.pop();
             if (team === 'B' && state.penaltyB.length > 0) state.penaltyB.pop();
             emitState();
@@ -304,7 +315,6 @@
 
         function countPenalty(data) {
             if(!data) return "ยิง 0 / เข้า 0";
-            // แปลงเป็น Array เพื่อกัน Error Object.filter
             let arr = Array.isArray(data) ? data : Object.values(data); 
             let hits = arr.filter(x => x === 'hit').length;
             return `ยิง ${arr.length} / เข้า ${hits}`;
@@ -372,7 +382,6 @@
             }
         });
 
-        // Cloudinary
         const CLOUD_NAME = 'dk0ypev4m'; 
         const UPLOAD_PRESET = 'khonkaen_preset';
         async function handleUpload(inputId, statusId, urlKey) {
