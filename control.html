@@ -212,26 +212,32 @@
         window.updateState = function(key, value) { state[key] = value; emitState(); };
         window.updateStat = function(key, val) { state[key] = Math.max(0, state[key] + val); emitState(); };
 
-        // จัดการจุดโทษแบบจุดสี
+        // --- แก้ไขระบบจุดโทษให้แปลง Object จาก Firebase ให้เป็น Array เสมอ ---
         window.addPenalty = function(team, result) {
-            if (!state.penaltyA) state.penaltyA = [];
-            if (!state.penaltyB) state.penaltyB = [];
+            // เช็คและแปลงเป็น Array ก่อน Push เพื่อป้องกัน Error
+            if (!Array.isArray(state.penaltyA)) state.penaltyA = state.penaltyA ? Object.values(state.penaltyA) : [];
+            if (!Array.isArray(state.penaltyB)) state.penaltyB = state.penaltyB ? Object.values(state.penaltyB) : [];
+            
             if (team === 'A') state.penaltyA.push(result);
             if (team === 'B') state.penaltyB.push(result);
             emitState();
         };
+
         window.undoPenalty = function(team) {
-            if (team === 'A' && state.penaltyA) state.penaltyA.pop();
-            if (team === 'B' && state.penaltyB) state.penaltyB.pop();
+            if (!Array.isArray(state.penaltyA)) state.penaltyA = state.penaltyA ? Object.values(state.penaltyA) : [];
+            if (!Array.isArray(state.penaltyB)) state.penaltyB = state.penaltyB ? Object.values(state.penaltyB) : [];
+
+            if (team === 'A' && state.penaltyA.length > 0) state.penaltyA.pop();
+            if (team === 'B' && state.penaltyB.length > 0) state.penaltyB.pop();
             emitState();
         };
+
         window.togglePenaltyMode = function() {
             state.isPenalty = !state.isPenalty;
             if (state.isPenalty) state.period = 'PEN';
             emitState();
         };
 
-        // จัดการบันทึกเซ็ต
         window.endSet = function() {
             if(!state.setHistory) state.setHistory = [];
             state.setHistory.push({ setNum: state.setHistory.length + 1, scoreA: state.scoreA, scoreB: state.scoreB });
@@ -242,6 +248,7 @@
             if(!isNaN(pNum)) state.period = (pNum + 1).toString();
             emitState();
         };
+
         window.resetAllData = function() {
             if(confirm("รีเซ็ตข้อมูลทั้งหมดใช่หรือไม่?")) {
                 state = JSON.parse(JSON.stringify(defaultState));
@@ -295,8 +302,10 @@
             }
         }, 500);
 
-        function countPenalty(arr) {
-            if(!arr) return "ยิง 0 / เข้า 0";
+        function countPenalty(data) {
+            if(!data) return "ยิง 0 / เข้า 0";
+            // แปลงเป็น Array เพื่อกัน Error Object.filter
+            let arr = Array.isArray(data) ? data : Object.values(data); 
             let hits = arr.filter(x => x === 'hit').length;
             return `ยิง ${arr.length} / เข้า ${hits}`;
         }
